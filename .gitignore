@@ -1,5 +1,6 @@
-# Output SVG files
+# Output files
 *.svg
+*.pdf
 
 # Python virtual environment
 .venv/
