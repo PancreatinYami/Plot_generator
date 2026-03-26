@@ -6,15 +6,27 @@ Excel 파일 하나로 publication-quality SVG 그래프를 자동 생성하는 
 
 ## 설치
 
+**요구사항**: Python 3.9 이상 ([python.org](https://www.python.org/downloads/)에서 설치)
+
 ```bash
+# 가상 환경 생성
 python3 -m venv .venv
+
+# 패키지 설치 (Mac/Linux)
 .venv/bin/pip install -r requirements.txt
+
+# 패키지 설치 (Windows)
+.venv\Scripts\pip install -r requirements.txt
 ```
 
 ## 실행
 
 ```bash
+# Mac/Linux
 .venv/bin/python3 plot.py <experiment>.xlsx
+
+# Windows
+.venv\Scripts\python plot.py <experiment>.xlsx
 ```
 
 출력 SVG는 Excel 파일과 같은 디렉터리에 `plot_id.svg` 이름으로 저장된다.
