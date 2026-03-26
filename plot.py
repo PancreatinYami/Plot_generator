@@ -46,6 +46,7 @@ from scipy import stats
 warnings.filterwarnings("ignore")
 matplotlib.use("Agg")
 matplotlib.rcParams['svg.fonttype'] = 'path'  # 텍스트를 패스로 변환 (Illustrator 호환)
+matplotlib.rcParams['pdf.fonttype'] = 42       # TrueType 임베드 (Illustrator 호환)
 
 # ── Style constants ────────────────────────────────────────────────────────────
 
@@ -159,11 +160,14 @@ def _apply_style(ax, cfg: dict):
         ax.set_xscale("log")
 
 
-def _save(fig, out_dir: Path, plot_id: str):
-    out = out_dir / f"{plot_id}.svg"
-    fig.savefig(out, format="svg", transparent=True, bbox_inches="tight", dpi=300)
+def _save(fig, out_dir: Path, plot_id: str, fmt: str = "svg"):
+    out = out_dir / f"{plot_id}.{fmt}"
+    if fmt == "pdf":
+        fig.savefig(out, format="pdf", transparent=True, bbox_inches="tight")
+    else:
+        fig.savefig(out, format="svg", transparent=True, bbox_inches="tight", dpi=300)
+        _strip_clippath(out)
     plt.close(fig)
-    _strip_clippath(out)
     print(f"    Saved → {out.name}")
 
 
@@ -188,7 +192,7 @@ def _err_kw() -> dict:
 
 # ── Bar chart ──────────────────────────────────────────────────────────────────
 
-def plot_bar(xlsx_path: Path, cfg: dict, out_dir: Path):
+def plot_bar(xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     df = load_sheet(xlsx_path, cfg)
     x_vals, y_mean, y_err, y_reps, group_vals = extract_series(df, cfg)
 
@@ -204,7 +208,7 @@ def plot_bar(xlsx_path: Path, cfg: dict, out_dir: Path):
 
     _apply_style(ax, cfg)
     fig.tight_layout()
-    _save(fig, out_dir, cfg["plot_id"])
+    _save(fig, out_dir, cfg["plot_id"], fmt)
 
 
 def _simple_bar(ax, x_vals, y_mean, y_err, y_reps):
@@ -272,7 +276,7 @@ def _grouped_bar(ax, x_vals, y_mean, y_err, y_reps, group_vals):
 
 # ── Line chart ─────────────────────────────────────────────────────────────────
 
-def plot_line(xlsx_path: Path, cfg: dict, out_dir: Path):
+def plot_line(xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     df = load_sheet(xlsx_path, cfg)
     x_vals, y_mean, y_err, y_reps, group_vals = extract_series(df, cfg)
 
@@ -302,12 +306,12 @@ def plot_line(xlsx_path: Path, cfg: dict, out_dir: Path):
 
     _apply_style(ax, cfg)
     fig.tight_layout()
-    _save(fig, out_dir, cfg["plot_id"])
+    _save(fig, out_dir, cfg["plot_id"], fmt)
 
 
 # ── Scatter + Linear regression ────────────────────────────────────────────────
 
-def plot_scatter(xlsx_path: Path, cfg: dict, out_dir: Path):
+def plot_scatter(xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     df = load_sheet(xlsx_path, cfg)
 
     x_col    = cfg.get("x_col", "")
@@ -343,12 +347,12 @@ def plot_scatter(xlsx_path: Path, cfg: dict, out_dir: Path):
 
     _apply_style(ax, cfg)
     fig.tight_layout()
-    _save(fig, out_dir, cfg["plot_id"])
+    _save(fig, out_dir, cfg["plot_id"], fmt)
 
 
 # ── Dose-response (log-scale line) ────────────────────────────────────────────
 
-def plot_dose_response(xlsx_path: Path, cfg: dict, out_dir: Path):
+def plot_dose_response(xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     cfg = dict(cfg)
     cfg["x_scale"] = "log"
     # Filter x=0 rows before plotting (log scale cannot handle 0)
@@ -357,10 +361,10 @@ def plot_dose_response(xlsx_path: Path, cfg: dict, out_dir: Path):
     if x_col in df.columns:
         df = df[pd.to_numeric(df[x_col], errors="coerce") > 0]
     # Delegate to line chart logic
-    _line_from_df(df, xlsx_path, cfg, out_dir)
+    _line_from_df(df, xlsx_path, cfg, out_dir, fmt)
 
 
-def _line_from_df(df: pd.DataFrame, xlsx_path: Path, cfg: dict, out_dir: Path):
+def _line_from_df(df: pd.DataFrame, xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     """Like plot_line but accepts a pre-filtered DataFrame."""
     x_vals, y_mean, y_err, y_reps, group_vals = extract_series(df, cfg)
     x_num = pd.to_numeric(pd.Series(x_vals), errors="coerce")
@@ -387,7 +391,7 @@ def _line_from_df(df: pd.DataFrame, xlsx_path: Path, cfg: dict, out_dir: Path):
 
     _apply_style(ax, cfg)
     fig.tight_layout()
-    _save(fig, out_dir, cfg["plot_id"])
+    _save(fig, out_dir, cfg["plot_id"], fmt)
 
 
 # ── Bar-Line 복합 플롯 ──────────────────────────────────────────────────────────
@@ -455,7 +459,7 @@ def _series_line_on_ax(ax, x_pos, y_mean, y_err, color, name):
     return line
 
 
-def plot_bar_line(xlsx_path: Path, cfg: dict, out_dir: Path):
+def plot_bar_line(xlsx_path: Path, cfg: dict, out_dir: Path, fmt: str = "svg"):
     """하나의 chart 안에 bar + line이 공존하는 다축 복합 그래프.
 
     각 series는 독립적인 Y축을 가짐:
@@ -553,7 +557,7 @@ def plot_bar_line(xlsx_path: Path, cfg: dict, out_dir: Path):
                    fontsize=FS["legend"], prop={"family": FONT}, loc="upper left")
 
     fig.tight_layout()
-    _save(fig, out_dir, cfg["plot_id"])
+    _save(fig, out_dir, cfg["plot_id"], fmt)
 
 
 # ── Dispatch ───────────────────────────────────────────────────────────────────
@@ -569,7 +573,7 @@ DISPATCH = {
 
 # ── Entry point ────────────────────────────────────────────────────────────────
 
-def main(xlsx_path_str: str):
+def main(xlsx_path_str: str, fmt: str = "pdf"):
     xlsx_path = Path(xlsx_path_str).resolve()
     if not xlsx_path.exists():
         print(f"Error: file not found — {xlsx_path}")
@@ -593,7 +597,7 @@ def main(xlsx_path_str: str):
             continue
 
         try:
-            fn(xlsx_path, cfg, out_dir)
+            fn(xlsx_path, cfg, out_dir, fmt)
             ok += 1
         except Exception as e:
             print(f"    Error: {e}")
@@ -603,7 +607,12 @@ def main(xlsx_path_str: str):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python plot.py <experiment.xlsx>")
-        sys.exit(1)
-    main(sys.argv[1])
+    import argparse
+    parser = argparse.ArgumentParser(description="Excel 파일에서 publication-quality 그래프를 생성한다.")
+    parser.add_argument("xlsx", help="입력 Excel 파일 경로")
+    parser.add_argument(
+        "--format", dest="fmt", choices=["svg", "pdf"], default="pdf",
+        help="출력 형식 (기본값: pdf)"
+    )
+    args = parser.parse_args()
+    main(args.xlsx, fmt=args.fmt)

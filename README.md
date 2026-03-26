@@ -23,19 +23,21 @@ python3 -m venv .venv
 
 ```bash
 # Mac/Linux
-.venv/bin/python3 plot.py <experiment>.xlsx
+.venv/bin/python3 plot.py <experiment>.xlsx              # PDF 출력 (기본값)
+.venv/bin/python3 plot.py <experiment>.xlsx --format svg # SVG 출력
 
 # Windows
 .venv\Scripts\python plot.py <experiment>.xlsx
+.venv\Scripts\python plot.py <experiment>.xlsx --format svg
 ```
 
-출력 SVG는 Excel 파일과 같은 디렉터리에 `plot_id.svg` 이름으로 저장된다.
+출력 파일은 Excel 파일과 같은 디렉터리에 `plot_id.pdf` 또는 `plot_id.svg` 이름으로 저장된다.
 
 ---
 
 ## Excel 파일 구성
 
-Excel 파일은 반드시 `__plots__` 시트를 포함해야 한다. 각 행이 SVG 1개를 정의한다.
+Excel 파일은 반드시 `__plots__` 시트를 포함해야 한다. 각 행이 그래프 1개를 정의한다.
 데이터는 별도 시트에 wide format으로 작성한다.
 
 `example_template.xlsx`의 **"사용법" 시트**에 전체 컬럼 규약과 예시가 정리되어 있다.
@@ -74,7 +76,7 @@ Series 1 → 좌측 Y축, Series 2 → 첫 번째 우측 Y축, Series 3+ → 추
 
 ## 출력 스타일
 
-- 포맷: SVG, 투명 배경 (Illustrator 바로 열기 가능)
+- 포맷: SVG 또는 PDF 선택 가능, 투명 배경 (Illustrator 바로 열기 가능)
 - 폰트: Arial 고정
 - 색상 팔레트: 8색 (색상환 균등 배분, muted natural 톤)
 - bar chart: 각 bar 위에 개별 데이터 포인트(dot) 오버레이
