@@ -1,10 +1,24 @@
 # Plot Automation
 
-Excel 파일 하나로 publication-quality SVG 그래프를 자동 생성하는 Python 스크립트.
+Excel 파일 하나로 publication-quality PDF/SVG 그래프를 자동 생성하는 도구.
 
 ---
 
 ## 설치
+
+### R 방식 (권장 — PDF, 고품질)
+
+**요구사항**: R 4.0+ ([r-project.org](https://www.r-project.org/)에서 설치)
+
+```bash
+# 최초 1회만: R 패키지 설치
+Rscript setup.R
+
+# Excel 파일에서 PDF 그래프 생성
+Rscript plot.R <experiment>.xlsx
+```
+
+### Python 방식 (레거시 — SVG/PDF)
 
 **요구사항**: Python 3.9 이상 ([python.org](https://www.python.org/downloads/)에서 설치)
 
@@ -21,6 +35,12 @@ python3 -m venv .venv
 
 ## 실행
 
+### R 방식
+```bash
+Rscript plot.R <experiment>.xlsx
+```
+
+### Python 방식
 ```bash
 # Mac/Linux
 .venv/bin/python3 plot.py <experiment>.xlsx              # PDF 출력 (기본값)
@@ -58,6 +78,8 @@ Excel 파일은 반드시 `__plots__` 시트를 포함해야 한다. 각 행이 
 | `y_label` | 선택 | Y축 레이블 |
 | `title` | 선택 | 그래프 제목 |
 | `x_scale` | 선택 | `log` 입력 시 로그 스케일 (기본: linear) |
+| `y_min` | 선택 | Y축 눈금 하한 (자동 계산 시 생략) |
+| `y_max` | 선택 | Y축 눈금 상한 (자동 계산 시 생략) |
 
 ### `bar_line` 전용 추가 컬럼
 
@@ -71,27 +93,44 @@ Series 1 → 좌측 Y축, Series 2 → 첫 번째 우측 Y축, Series 3+ → 추
 | `series_err_cols` | 파이프 구분 오차 컬럼 (replicate 사용 시 빈칸) | `\|OD_std\|` |
 | `series_y_labels` | 파이프 구분 Y축 레이블 | `Indican (mM)\|OD600\|pH` |
 | `series_names` | 파이프 구분 범례 이름 | `Indican\|OD600\|pH` |
+| `series_y_mins` | 파이프 구분 각 series Y축 눈금 하한 | `0\|0\|6.5` |
+| `series_y_maxs` | 파이프 구분 각 series Y축 눈금 상한 | `3\|1.5\|8` |
 
 ---
 
 ## 출력 스타일
 
-- 포맷: SVG 또는 PDF 선택 가능, 투명 배경 (Illustrator 바로 열기 가능)
+**R 방식 (plot.R)**:
+- 포맷: PDF, 투명 배경, publication-quality
+- 폰트: Arial (또는 Helvetica/sans 폴백)
+- 색상 팔레트: 8색 (muted natural 톤)
+- Bar chart: 각 bar 옆에 개별 데이터 포인트(dot) 표시 (흰 채움, 검정 테두리)
+- Y축 눈금: 자동 계산 또는 Excel로 직접 지정 가능 (`y_min`, `y_max`, `series_y_mins`, `series_y_maxs`)
+- 모든 Y축: 상단 눈금이 panel 내 동일 높이에 정렬 (다축 차트에서 시각적 일관성)
+
+**Python 방식 (plot.py)** (레거시):
+- 포맷: SVG 또는 PDF 선택 가능, 투명 배경
 - 폰트: Arial 고정
-- 색상 팔레트: 8색 (색상환 균등 배분, muted natural 톤)
-- bar chart: 각 bar 위에 개별 데이터 포인트(dot) 오버레이
+- 색상 팔레트: 8색
+- Bar chart: 각 bar 위에 개별 데이터 포인트(dot) 오버레이
 - 모든 텍스트(축 레이블, 숫자, 제목): 검정
-- 9개 이상 조건이 필요한 경우 `plot.py` 상단의 `PALETTE` 리스트에 색 추가
+
+**공통**:
+- 9개 이상 조건이 필요한 경우 소스 코드 상단의 `PALETTE` 리스트에 색 추가
 
 ---
 
 ## 파일 구성
 
 ```
-plot.py                  # 메인 스크립트
+plot.R                   # R 메인 스크립트 (권장)
+setup.R                  # R 패키지 설치 스크립트
+plot.py                  # Python 메인 스크립트 (레거시)
 requirements.txt         # Python 패키지 목록
 example_template.xlsx    # 사용 예시 및 템플릿
   ├── 사용법             # 전체 사용 가이드
-  ├── __plots__          # 예시 plot 설정 (6종)
+  ├── __plots__          # 예시 plot 설정
   └── data_*             # 예시 데이터 시트
+CLAUDE.md                # Claude Code용 가이드
+README.md                # 이 파일
 ```

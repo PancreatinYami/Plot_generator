@@ -8,6 +8,20 @@ This repository automates publication-quality plot generation from HPLC/analytic
 
 ## Running the Script
 
+### R 방식 (권장 — PDF, Illustrator 클리핑 마스크 없음)
+
+```bash
+# 최초 1회: R 패키지 설치
+Rscript setup.R
+
+# Excel 파일에서 PDF 그래프 생성
+Rscript plot.R <experiment>.xlsx
+```
+
+Output PDF files are written to the same directory as the input Excel file, named after each `plot_id` in the `__plots__` sheet.
+
+### Python 방식 (레거시 — SVG/PDF, 클리핑 마스크 문제 있음)
+
 ```bash
 # First-time setup: create virtual environment and install dependencies
 python3 -m venv .venv
@@ -34,6 +48,7 @@ Every input Excel file must contain a `__plots__` sheet where each row defines o
 | `group_col` | Column for grouping/color separation |
 | `x_label` / `y_label` | Axis labels |
 | `x_scale` | `linear` (default) or `log` |
+| `y_min` / `y_max` | Y-axis tick range (first and last tick); auto-computed if blank |
 
 Data sheets use **wide format**: conditions as columns, measurements as rows. Triplicates are placed in adjacent columns (e.g., `WT_1`, `WT_2`, `WT_3`).
 
@@ -48,6 +63,8 @@ Data sheets use **wide format**: conditions as columns, measurements as rows. Tr
 | `series_err_cols` | 파이프 구분 error 컬럼 (replicate 사용 시 빈칸) | `\|OD_std\|` |
 | `series_y_labels` | 파이프 구분 Y축 레이블 | `Indican (mM)\|OD600\|pH` |
 | `series_names` | 파이프 구분 범례 이름 | `Indican\|OD600\|pH` |
+| `series_y_mins` | 파이프 구분 각 series Y축 tick 하한 | `0\|0\|6.5` |
+| `series_y_maxs` | 파이프 구분 각 series Y축 tick 상한 | `3\|1.5\|8` |
 
 - Series 1 → 좌측 Y축, Series 2 → 우측 Y축, Series 3+ → 추가 우측 축 (65pt씩 오른쪽)
 - 7개 이상 조건이 필요한 경우 `plot.py` 상단의 `PALETTE` 리스트에 색을 추가
