@@ -12,3 +12,6 @@ __pycache__/
 
 # Claude Code internal files
 .claude/
+
+# Development/archive folders
+Giho/
